@@ -1,11 +1,36 @@
 import SwiftUI
 import shared
 
-struct ContentView: View {
-	let greet = Greeting().greet()
+class MyThread: Thread {
+    override func main() { // Thread's starting point
+        Greeting().greet(path: KMP().getFileName())
+    }
+}
 
+struct ContentView: View {
+
+    let greet: String
+    let fileName: String
+    init() {
+        fileName = KMP().getFileName()
+        greet = "Hello"
+    }
+    func start() {
+        DispatchQueue.global(qos: .background) .async {Greeting().greet(path: KMP().getFileName())}
+//        let thread = MyThread()
+//        thread.start()
+    }
+    
 	var body: some View {
-		Text(greet)
+		//Text(greet)
+        Button {
+//            Greeting().greet(path: fileName)
+            start()
+        } label: {
+            Text("Press Me")
+                .padding(20)
+        }
+        .contentShape(Rectangle())
 	}
 }
 

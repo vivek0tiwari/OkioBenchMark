@@ -2,7 +2,7 @@ package com.example.okiobenchmark.android
 
 import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
+import android.location.Location
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,14 +11,21 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.okiobenchmark.FileAppender
+import androidx.lifecycle.lifecycleScope
 import com.example.okiobenchmark.Greeting
+import kotlinx.coroutines.*
 import java.io.File
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 
 class MainActivity : ComponentActivity() {
     var alertDialog: AlertDialog? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -27,28 +34,35 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    GreetingView(Greeting().greet(), alertDialog, applicationContext)
+                    GreetingView("", alertDialog, applicationContext)
                 }
             }
         }
 
-        createDialog()
+
+
     }
-    fun createDialog() {
-        val alertDialogBuilder = AlertDialog.Builder(this)
-        alertDialogBuilder.setTitle("Exit App")
-        alertDialogBuilder.setMessage("Are you sure you want to exit?")
-        alertDialogBuilder.setPositiveButton("Yes") { _: DialogInterface, _: Int ->
-            finish()
-        }
-        alertDialogBuilder.setNegativeButton("Cancel", { dialogInterface: DialogInterface, i: Int -> })
-        alertDialog = alertDialogBuilder.create()
-    }
+
 }
 
+suspend fun startOkioFileWrite(context: Context) {
+     GlobalScope.launch(Dispatchers.IO) {
+
+     }
+     withContext(Dispatchers.IO){
+         Greeting().greet(File(context.filesDir, "").path)
+     }
+}
 @Composable
 fun GreetingView(text: String, alertDialog: AlertDialog?, context: Context) {
-    Button(onClick = { FileAppender.write2mbData(File(context.filesDir, "okio.txt").path,File(context.filesDir, "okio2MB.txt").path ) }, modifier= Modifier.height(64.dp)) {
+    val coroutineScope = rememberCoroutineScope()
+    val startOkioFileWriteCoroute: () -> Unit = {
+        coroutineScope.launch {
+            startOkioFileWrite(context)
+        }
+    }
+
+    Button(onClick = { startOkioFileWriteCoroute() }, modifier= Modifier.height(64.dp)) {
         Icon(
             Icons.Filled.Favorite,
             contentDescription = "Localized description",
